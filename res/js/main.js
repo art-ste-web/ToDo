@@ -10,8 +10,32 @@ const UNCHECK = "fa-circle-thin";
 const LINE_THROUGH = "lineThrough";
 
 //Variables
-let LIST = [],
+let LIST, id;
+
+//get item from localstorage
+let data = localStorage.getItem("TODO");
+//check if data not empty
+if(data) {
+    LIST = JSON.parse(data);
+    id = LIST.length; //set the id to the last one in the list
+    loadList(LIST);
+}else {
+    LIST = [];
     id = 0;
+}
+
+//load items to the UI
+function loadList(array) {
+    array.forEach(item => {
+        AddToDo(item.name, item.id, item.done, item.trash);
+    });
+}
+
+//clear local storage
+clear.addEventListener("click", ()=>{
+    localStorage.clear();
+    location.reload();
+})
 
 //Show todays date
 const options = {weekday:"long", month:"short", day:"numeric"};
@@ -33,7 +57,7 @@ function AddToDo(toDo, id, done, trash) {
 }
 
 //Add an item to the list user the enter key
-document.addEventListener("keyup", function(even){
+document.addEventListener("keyup", function(event){
     if(event.keyCode == 13) {
         const toDo = input.value;
         //if the input isn't empty
@@ -47,8 +71,45 @@ document.addEventListener("keyup", function(even){
                     trash: false
                 }
             );
+
+            //add item to localstorage (everywhere where LIST arr updating)
+            localStorage.setItem("TODO", JSON.stringify(LIST));
+
             id++;
         }
+        input.value = "";
     }
 
+});
+
+
+//complete to do
+function completeToDo(element) {
+    element.classList.toggle(CHECK);
+    element.classList.toggle(UNCHECK);
+    element.parentNode.querySelector(".text").classList.toggle(LINE_THROUGH);
+
+    LIST[element.id].done = LIST[element.id].done ? false : true;
+}
+
+//remove todo
+function removeToDo(element){
+    element.parentNode.parentNode.removeChild(element.parentNode);
+
+    LIST[element.id].trash = true;
+}
+
+//target the items created dynamically
+list.addEventListener("click", function(event){
+    const element = event.target; //return the clicked element inside container
+    const elementJob = element.attributes.job.value; //get job atr value
+
+    if(elementJob == "complete") {
+        completeToDo(element);
+    }
+    else if (elementJob == "delete") {
+        removeToDo(element);
+    }
+    //add item to localstorage (everywhere where LIST arr updating)
+    localStorage.setItem("TODO", JSON.stringify(LIST));
 });
